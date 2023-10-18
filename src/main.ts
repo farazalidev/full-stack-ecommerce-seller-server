@@ -17,12 +17,13 @@ async function bootstrap() {
   dotenv.config({ path });
 
   app.use(cookieParser());
-  app.use(bodyParser());
+  app.use(bodyParser({ limit: '50mb', parameterLimit: 1000000 }));
   app.enableCors({
     origin: 'http://localhost:3000',
     credentials: true,
     methods: ['GET', 'POST', 'DELETE', 'PATCH'],
   });
+
   app.useGlobalPipes(new ValidationPipe());
 
   await app.listen(4000);
