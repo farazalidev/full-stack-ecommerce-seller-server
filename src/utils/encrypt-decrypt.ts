@@ -12,16 +12,23 @@ export const encrypt = (data: string, key: string) => {
 
   return encryptedDataWithIV;
 };
-export const decrypt = (data: string, key: string) => {
-  const ENC_KEY = Buffer.from(key, 'hex');
+export const decrypt = (
+  data: string,
+  key: string,
+): { success: boolean; data?: string } => {
+  try {
+    const ENC_KEY = Buffer.from(key, 'hex');
 
-  // Extract IV from the input data
-  const ivHex = data.slice(0, 32);
-  const IV = Buffer.from(ivHex, 'hex');
-  const encryptedData = data.slice(32);
+    // Extract IV from the input data
+    const ivHex = data.slice(0, 32);
+    const IV = Buffer.from(ivHex, 'hex');
+    const encryptedData = data.slice(32);
 
-  const decipher = crypto.createDecipheriv('aes-256-cbc', ENC_KEY, IV);
-  const decrypted = decipher.update(encryptedData, 'base64', 'utf8');
+    const decipher = crypto.createDecipheriv('aes-256-cbc', ENC_KEY, IV);
+    const decrypted = decipher.update(encryptedData, 'base64', 'utf8');
 
-  return decrypted + decipher.final('utf8');
+    return { success: true, data: decrypted + decipher.final('utf8') };
+  } catch (error) {
+    return { success: false, data: undefined };
+  }
 };

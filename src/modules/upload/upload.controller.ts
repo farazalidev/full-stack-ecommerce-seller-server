@@ -1,67 +1,58 @@
-import {
-  Body,
-  Controller,
-  Post,
-  UploadedFile,
-  UseInterceptors,
-} from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { UploadService } from './upload.service';
-import { CloudinaryResponse } from 'src/utils/cloudinary-response';
-import { v2 as cloudinary } from 'cloudinary';
+import { Body, Controller, HttpException, Post, Req, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { UploadService } from "./upload.service";
+import { CloudinaryResponse } from "src/utils/cloudinary-response";
+import { authGuard } from "../seller/auth.guard";
 
 @Controller()
 export class UploadController {
-  constructor(private readonly uploadService: UploadService) {}
+     constructor(private readonly uploadService: UploadService) {}
 
-  @Post('/upload/product-thumbnail')
-  @UseInterceptors(FileInterceptor('thumbnail'))
-  async uploadThumbnailImage(
-    @UploadedFile() file: Express.Multer.File,
-  ): Promise<CloudinaryResponse> {
-    cloudinary.config({
-      cloud_name: process.env.CLOUDINARY_NAME,
-      api_key: process.env.CLOUDINARY_API_KEY,
-      api_secret: process.env.CLOUDINARY_API_SECRET,
-    });
+     @Post("/upload/description-images")
+     @UseInterceptors(FileInterceptor("description_image"))
+     async uploadThumbnailImage(@UploadedFile() file: Express.Multer.File): Promise<{ location: string }> {
+          const response = await this.uploadService.uploadDescriptionImage(file);
+          return {
+               location: response.url,
+          };
+     }
+     @Post("/upload/remove-description-image")
+     async RemoveThumbnailImage(@Body() body): Promise<CloudinaryResponse> {
+          return this.uploadService.removeCloudImage(body?.public_id);
+     }
 
-    return this.uploadService.uploadThumbnailImage(file);
-  }
-  @Post('/upload/remove-thumbnail')
-  async RemoveThumbnailImage(@Body() body): Promise<CloudinaryResponse> {
-    console.log(body?.public_id);
+     @Post("/upload/product-image")
+     @UseInterceptors(FileInterceptor("product-image"))
+     async uploadProductImage(
+          @UploadedFile() file: Express.Multer.File,
+     ): Promise<{ url: string; public_id: string; bytes: string; name: string; uploaded_on: Date }> {
+          console.log(file);
 
-    cloudinary.config({
-      cloud_name: process.env.CLOUDINARY_NAME,
-      api_key: process.env.CLOUDINARY_API_KEY,
-      api_secret: process.env.CLOUDINARY_API_SECRET,
-    });
-    return this.uploadService.removeThumbnailImage(body?.public_id);
-  }
+          const response = await this.uploadService.uploadProductImage(file);
 
-  @Post('/upload/other-images')
-  @UseInterceptors(FileInterceptor('other-images'))
-  async uploadOtherImages(
-    @UploadedFile() file: Express.Multer.File,
-  ): Promise<CloudinaryResponse> {
-    cloudinary.config({
-      cloud_name: process.env.CLOUDINARY_NAME,
-      api_key: process.env.CLOUDINARY_API_KEY,
-      api_secret: process.env.CLOUDINARY_API_SECRET,
-    });
+          return {
+               public_id: response.public_id,
+               url: response.url,
+               bytes: response.bytes,
+               name: response.original_filename,
+               uploaded_on: response.created_at,
+          };
+     }
 
-    return this.uploadService.uploadOtherImages(file);
-  }
+     @Post("upload/remove-gallery-image")
+     @UseGuards(authGuard)
+     async removeImageFromGallery(@Req() req, @Body() body): Promise<{ public_id: string }> {
+          const response = await this.uploadService.removeImageFromGallery(body.public_id, req.seller);
+          if (!response.success) {
+               throw new HttpException(response.error.message, response.error.statusCode);
+          }
+          return response.data;
+     }
 
-  @Post('/upload/remove-other-image')
-  async RemoveOtherImage(@Body() body): Promise<CloudinaryResponse> {
-    console.log(body?.public_id);
+     @Post("upload/remove-upload")
+     async removeUpload(@Body() body): Promise<CloudinaryResponse> {
+          console.log(body.public_id);
 
-    cloudinary.config({
-      cloud_name: process.env.CLOUDINARY_NAME,
-      api_key: process.env.CLOUDINARY_API_KEY,
-      api_secret: process.env.CLOUDINARY_API_SECRET,
-    });
-    return this.uploadService.removeOtherImage(body?.public_id);
-  }
+          return await this.uploadService.removeCloudImage(body.public_id);
+     }
 }

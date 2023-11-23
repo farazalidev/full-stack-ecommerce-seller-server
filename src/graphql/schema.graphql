@@ -2,6 +2,117 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type CategoriesDataTypeScaler {
+  category: String!
+  subcategories: [subCategoriesScaler!]!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type ImagesArray {
+  name: String!
+  uid: String!
+  url: String!
+}
+
+type Mutation {
+  addNewProduct(product: addNewProductInput!): Boolean!
+  updateProduct(product_id: String!, updated_product: addNewProductInput!): Boolean!
+}
+
+"""Add a new Product"""
+type ProductEntity {
+  description: String!
+  discount: Float
+  images: [ImagesArray!]!
+  manufacturer: String!
+  price: Float!
+  product_category: String!
+  product_id: String!
+  product_name: String!
+  seller: SellerEntity!
+  stock: Float!
+  store: Seller_storeEntity!
+  thumbnail: ThumbnailType!
+}
+
 type Query {
-  index: String!
+  getCategories: [CategoriesDataTypeScaler!]!
+  getProductById(product_id: String!): ProductEntity!
+  getProductsOfSellerStore: [ProductEntity!]!
+  getStoresOfSeller: storeInfoResponse!
+  index: ProductEntity!
+}
+
+type SellerEntity {
+  isConfirmed: Boolean!
+  seller_address: sellerAddressEntity!
+  seller_email: String!
+  seller_id: String!
+  seller_join_date: DateTime!
+  seller_name: String!
+  seller_password: String!
+}
+
+"""seller_store entity"""
+type Seller_storeEntity {
+  seller: SellerEntity!
+  store_category: String!
+  store_id: String!
+  store_location: String!
+  store_name: String!
+  store_phone: Float!
+}
+
+input Thumbnail {
+  name: String!
+  uid: String!
+  url: String!
+}
+
+type ThumbnailType {
+  name: String!
+  uid: String!
+  url: String!
+}
+
+input addNewProductInput {
+  description: String!
+  discount: Float
+  images: [imagesArrayInput!]!
+  manufacturer: String!
+  price: Float!
+  product_category: String!
+  product_name: String!
+  stock: Float!
+  thumbnail: Thumbnail!
+}
+
+input imagesArrayInput {
+  name: String!
+  uid: String!
+  url: String!
+}
+
+type sellerAddressEntity {
+  address_id: String!
+  city: String!
+  country: String!
+  home_address: String!
+  postal_code: String!
+  state: String!
+  street_address: String!
+}
+
+type storeInfoResponse {
+  selectedStore: Seller_storeEntity!
+  stores: [Seller_storeEntity!]!
+}
+
+type subCategoriesScaler {
+  subCategoryName: String!
+  subSubCategories: [String!]!
 }
